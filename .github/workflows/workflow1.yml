@@ -1,4 +1,4 @@
-name: To Show Error
+name: CI Pipeline (DOC1)
 
 on:
   workflow_dispatch:
@@ -14,4 +14,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run a one-line script
-        run: echo "Should fail..." ; exit 1
+        run: echo "Continuous Integration"
