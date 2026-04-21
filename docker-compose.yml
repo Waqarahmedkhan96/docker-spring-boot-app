@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16
+    container_name: doc-pgsql-container
+    restart: always
+    environment:
+      POSTGRES_DB: doc-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  backend:
+    image: backend/spring-app:latest
+    build:
+      context: .
+    container_name: spring-app
+    restart: always
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/doc-db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+
+volumes:
+  db:
+    driver: local

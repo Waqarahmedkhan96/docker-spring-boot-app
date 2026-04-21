@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+spring-app.tar
+
+spring-app.tar
+target/
+*.log
+
+spring-app.tar
+target/
+*.log
