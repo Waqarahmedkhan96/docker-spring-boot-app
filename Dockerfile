@@ -1,5 +1,11 @@
-FROM eclipse-temurin:25-jdk-alpine
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+RUN mkdir -p /app
+WORKDIR /app
+COPY pom.xml /app
+COPY src /app/src
+RUN mvn -B package --file pom.xml -DskipTests
+
+FROM eclipse-temurin:21-jdk-alpine
 EXPOSE 8080
-VOLUME /tmp
-ADD /target/*.jar docker-spring-boot-app-0.0.1-SNAPSHOT.jar
-ENTRYPOINT ["java", "-jar", "/docker-spring-boot-app-0.0.1-SNAPSHOT.jar"]
+COPY --from=build /app/target/*jar app.jar
+ENTRYPOINT ["java","-jar","app.jar"]
