@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -15,20 +16,42 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Minikube
+        id: minikube
         uses: medyagh/setup-minikube@latest
+
+      - name: Check cluster
+        run: kubectl get pods -A
 
       - name: Build Docker image
         run: |
+          export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
-          docker build -t local/my-app .
+          docker build -f ./Dockerfile -t local/my-app:latest .
+          echo "Verifying images:"
+          docker images
 
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f deploy.yaml
+          kubectl wait --for=condition=Ready pod -l app=my-app --timeout=180s
           kubectl get all
+
+      - name: Debug Kubernetes
+        run: |
+          kubectl get pods -o wide
+          kubectl describe pods
+
+      - name: Test service URLs
+        run: |
+          echo "SERVICE_URL=$(minikube service my-app --url)"
 
       - name: Test app
         run: |
-          kubectl port-forward service/my-app 8080:8080 &
-          sleep 5
+          kubectl port-forward service/my-app 8080:8080 >/dev/null 2>&1 &
+          sleep 10
           curl -i http://localhost:8080/
+
+      - name: Cleanup
+        run: |
+          eval $(minikube docker-env -u)
+          minikube delete
